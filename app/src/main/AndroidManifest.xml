@@ -24,6 +24,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".WallActivity"
+            android:exported="false"/>
         <provider
             android:name="com.vk.id.captcha.init.SdkInitContentProvider"
             android:authorities="${applicationId}.vkid.provider"
