@@ -2,6 +2,7 @@ package com.example.vknews
 
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -27,14 +28,13 @@ class WallActivity : AppCompatActivity() {
     }
 
     private fun fetchWallPosts() {
-        val groupId = -1
+        binding.progressBar.visibility = View.VISIBLE
+        val groupId = -146026097
         val count = 50
-        val accessToken = intent.getStringExtra("token") ?: run {
-            Log.e("WallActivity", "Token is null")
-            Toast.makeText(this, "Ошибка: токен отсутствует", Toast.LENGTH_LONG).show()
-            return
-        }
+        val accessToken = intent.getStringExtra("token") ?: return
+
         val url = "https://api.vk.com/method/wall.get?owner_id=$groupId&count=$count&access_token=$accessToken&v=5.154"
+
         GlobalScope.launch(Dispatchers.Main) {
             try {
                 val result = withContext(Dispatchers.IO) {
@@ -44,27 +44,40 @@ class WallActivity : AppCompatActivity() {
                     if (!response.isSuccessful) throw IOException("Unexpected code $response")
                     response.body?.string() ?: throw IOException("Empty response")
                 }
-                Log.d("WallActivity", "API Response: $result")
+
                 val json = JSONObject(result)
-                if (json.has("error")) {
-                    val error = json.getJSONObject("error")
-                    val errorMsg = error.getString("error_msg")
-                    val errorCode = error.getInt("error_code")
-                    Log.e("WallActivity", "API Error: code=$errorCode, message=$errorMsg")
-                    Toast.makeText(this@WallActivity, "Ошибка API: $errorMsg", Toast.LENGTH_LONG).show()
-                    return@launch
+                val postsJson = json.getJSONObject("response").getJSONArray("items")
+                val postList = mutableListOf<Post>()
+
+                for (i in 0 until postsJson.length()) {
+                    val post = postsJson.getJSONObject(i)
+                    val text = post.optString("text", "")
+                    val attachments = post.optJSONArray("attachments")
+                    var imageUrl: String? = null
+
+                    if (attachments != null) {
+                        for (j in 0 until attachments.length()) {
+                            val attachment = attachments.getJSONObject(j)
+                            if (attachment.getString("type") == "photo") {
+                                val photo = attachment.getJSONObject("photo")
+                                val sizes = photo.getJSONArray("sizes")
+                                if (sizes.length() > 0) {
+                                    imageUrl = sizes.getJSONObject(sizes.length() - 1).getString("url")
+                                    break
+                                }
+                            }
+                        }
+                    }
+
+                    postList.add(Post(title = "Пост #${i + 1}", text = text, imageUrl = imageUrl, isEven = i % 2 == 0))
                 }
-                val posts = json.getJSONObject("response").getJSONArray("items")
-                val textList = mutableListOf<String>()
-                for (i in 0 until posts.length()) {
-                    val post = posts.getJSONObject(i)
-                    val text = post.getString("text")
-                    textList.add(text)
-                }
-                binding.recyclerView.adapter = PostAdapter(textList) // Используем PostAdapter
+
+                binding.recyclerView.adapter = PostAdapter(postList)
+
             } catch (e: Exception) {
-                Log.e("WallActivity", "Error fetching posts", e)
-                Toast.makeText(this@WallActivity, "Ошибка загрузки постов: ${e.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@WallActivity, "Ошибка: ${e.message}", Toast.LENGTH_LONG).show()
+            } finally {
+                binding.progressBar.visibility = View.GONE
             }
         }
     }

@@ -3,9 +3,9 @@ package com.example.vknews
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.vknews.databinding.ActivityMainBinding
-import com.vk.id.AccessToken
 import com.vk.id.VKID
 import com.vk.id.VKIDAuthFail
 import com.vk.id.auth.VKIDAuthCallback
@@ -16,6 +16,7 @@ class MainActivity : AppCompatActivity() {
 
     private val vkAuthCallback = object: VKIDAuthCallback {
         override fun onAuth(accessToken: com.vk.id.AccessToken) {
+            Toast.makeText(this@MainActivity, "Успешная авторизация!", Toast.LENGTH_SHORT).show()
             Log.d("VKID", "Успешная авторизация: idToken=${accessToken.idToken}, scopes=${accessToken.scopes}")
             try {
                 val tokenField = accessToken::class.java.getDeclaredField("token")
@@ -36,6 +37,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onFail(fail: VKIDAuthFail) {
+            Toast.makeText(this@MainActivity, "Ошибка авторизации", Toast.LENGTH_SHORT).show()
             Log.e("VKID", "Ошибка авторизации")
         }
     }
@@ -50,7 +52,7 @@ class MainActivity : AppCompatActivity() {
                 lifecycleOwner = MainActivity@this,
                 callback = vkAuthCallback,
                 params = VKIDAuthParams {
-                    scopes = setOf("wall", "vkid.personal_info") // для доступа к записям сообщества
+                    scopes = setOf("wall", "vkid.personal_info")
                 }
             )
         }
