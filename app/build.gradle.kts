@@ -15,13 +15,6 @@ android {
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        addManifestPlaceholders(mapOf(
-            "VKIDRedirectHost" to "vk.com",
-            "VKIDRedirectScheme" to "vk53933343",
-            "VKIDClientID" to 53933343,
-            "VKIDClientSecret" to "Edwd04Td6RBNyXgBBJeX"
-        ))
     }
 
     buildTypes {
@@ -53,9 +46,6 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.2")
-
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
     implementation("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
